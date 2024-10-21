@@ -142,7 +142,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
 
   return (
     <div className="game-container">
-      <div className="header">
+      <div className="button-container">
         <button className="settings-button" onClick={() => setShowSettings(true)}>Settings</button>
       </div>
       <div className="grid">

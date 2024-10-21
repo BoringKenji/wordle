@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -22,6 +22,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [wordList, setWordList] = useState(currentWordList.join('\n'));
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
 
+  useEffect(() => {
+    setWordList(currentWordList.join('\n'));
+  }, [currentWordList]);
+  
   const handleSave = () => {
     const warnings: string[] = [];
 

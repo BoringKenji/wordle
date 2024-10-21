@@ -24,6 +24,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
   const [letterStatuses, setLetterStatuses] = useState<Record<string, 'correct' | 'present' | 'absent' | undefined>>({});
   const [showSettings, setShowSettings] = useState(false);
   const [maxAttempts, setMaxAttempts] = useState(initialMaxAttempts);
+  const [currentWordList, setCurrentWordList] = useState<string[]>([]);
 
   const settingsInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -140,10 +141,21 @@ const WordleGame: React.FC<WordleGameProps> = ({
     }
   };
 
+  const handleOpenSettings = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/word-list?gameId=${gameId}`);
+      setCurrentWordList(response.data.wordList);
+      setShowSettings(true);
+    } catch (error) {
+      console.error('Error fetching word list:', error);
+      setMessage('Error fetching word list. Please try again.');
+    }
+  };
+
   return (
     <div className="game-container">
       <div className="button-container">
-        <button className="settings-button" onClick={() => setShowSettings(true)}>Settings</button>
+        <button className="settings-button" onClick={handleOpenSettings}>Settings</button>
       </div>
       <div className="grid">
         {Array.from({ length: maxAttempts }).map((_, rowIndex) => (
@@ -170,7 +182,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
           onClose={() => setShowSettings(false)}
           onSave={handleSaveSettings}
           currentMaxAttempts={maxAttempts}
-          currentWordList={[]}
+          currentWordList={currentWordList}
           inputRef={settingsInputRef}
         />
       )}

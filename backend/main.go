@@ -73,7 +73,7 @@ func makeGuess(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&request); err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 

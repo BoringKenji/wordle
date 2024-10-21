@@ -84,28 +84,28 @@ const WordleGame: React.FC<WordleGameProps> = ({
   }, [handleKeyPress, showSettings]);
 
   const handleSubmitGuess = async () => {
-    if (currentGuess.length !== 5) {
-      setMessage('Please enter a 5-letter word.');
-      return;
-    }
-
     try {
       const response = await axios.post('http://localhost:8080/guess', {
         gameId,
         guess: currentGuess,
       });
 
+      if (response.data.error) {
+        setMessage(response.data.error);
+        return;
+      }
+  
       const { guesses: serverGuesses, gameOver, message, letterStatuses: serverLetterStatuses } = response.data;
-
+  
       const newGuessData: GuessData = {
         word: currentGuess,
         letterStatuses: serverLetterStatuses as ('correct' | 'present' | 'absent')[],
       };
       setGuesses(prevGuesses => [...prevGuesses, newGuessData]);
-
+  
       setGameOver(gameOver);
       setMessage(message);
-
+  
       const newLetterStatuses = { ...letterStatuses };
       for (let i = 0; i < 5; i++) {
         const letter = currentGuess[i].toUpperCase();
@@ -115,7 +115,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
         }
       }
       setLetterStatuses(newLetterStatuses);
-
+  
       setCurrentGuess('');
     } catch (error) {
       console.error('Error submitting guess:', error);

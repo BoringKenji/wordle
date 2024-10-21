@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from '@emotion/styled';
 import VirtualKeyboard from './VirtualKeyboard';
+import axios from 'axios';
 
 const GameContainer = styled.div`
   display: flex;
@@ -70,7 +71,12 @@ const Grid = styled.div`
   margin-bottom: 1rem;
 `;
 
-const Cell = styled.div<{ status: 'empty' | 'filled' | 'correct' | 'present' | 'absent' }>`
+interface CellProps {
+  status: 'empty' | 'filled' | 'correct' | 'present' | 'absent';
+  children?: React.ReactNode;
+}
+
+const Cell = styled.div<CellProps>`
   width: 50px;
   height: 50px;
   border: 2px solid #ccc;
@@ -103,31 +109,62 @@ const Message = styled.p`
 
 interface WordleGameProps {
   initialMaxAttempts?: number;
-  initialWordList?: string[];
 }
 
-const defaultWordList = ['REACT', 'SWIFT', 'SCALA', 'UNITY', 'KOTLIN', 'PYTHON', 'WORDLE'];
+interface GuessData {
+  word: string;
+  letterStatuses: ('correct' | 'present' | 'absent')[];
+}
+
+function isValidStatus(status: string): status is 'empty' | 'filled' | 'correct' | 'present' | 'absent' {
+  return ['empty', 'filled', 'correct', 'present', 'absent'].includes(status);
+}
+
+function mapStatus(status: string): 'empty' | 'filled' | 'correct' | 'present' | 'absent' {
+  if (isValidStatus(status)) {
+    return status;
+  }
+  console.warn(`Invalid status: ${status}. Defaulting to 'empty'.`);
+  return 'empty';
+}
 
 const WordleGame: React.FC<WordleGameProps> = ({
   initialMaxAttempts = 6,
-  initialWordList = defaultWordList,
 }) => {
-  const [targetWord, setTargetWord] = useState('');
-  const [guesses, setGuesses] = useState<string[]>([]);
+  const [gameId, setGameId] = useState('');
+  const [guesses, setGuesses] = useState<GuessData[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [gameOver, setGameOver] = useState(false);
   const [message, setMessage] = useState('');
   const [letterStatuses, setLetterStatuses] = useState<Record<string, 'correct' | 'present' | 'absent' | undefined>>({});
   const [showSettings, setShowSettings] = useState(false);
   const [maxAttempts, setMaxAttempts] = useState(initialMaxAttempts);
-  const [wordList, setWordList] = useState(initialWordList);
-
-  useEffect(() => {
-    setTargetWord(wordList[Math.floor(Math.random() * wordList.length)]);
-  }, [wordList]);
 
   const settingsInputRef = useRef<HTMLTextAreaElement>(null);
-  
+
+  useEffect(() => {
+    startNewGame();
+  }, []);
+
+  const startNewGame = async () => {
+    try {
+      const response = await axios.post('http://localhost:8080/new-game');
+      setGameId(response.data.gameId);
+      setMaxAttempts(response.data.maxAttempts);
+      resetGame();
+    } catch (error) {
+      console.error('Error starting new game:', error);
+    }
+  };
+
+  const resetGame = () => {
+    setGuesses([]);
+    setCurrentGuess('');
+    setGameOver(false);
+    setMessage('');
+    setLetterStatuses({});
+  };
+
   const handleKeyPress = useCallback((key: string) => {
     if (gameOver || showSettings) return;
 
@@ -161,83 +198,82 @@ const WordleGame: React.FC<WordleGameProps> = ({
     };
   }, [handleKeyPress, showSettings]);
 
-  const handleSubmitGuess = () => {
+  const handleSubmitGuess = async () => {
     if (currentGuess.length !== 5) {
       setMessage('Please enter a 5-letter word.');
       return;
     }
 
-    if (!wordList.includes(currentGuess)) {
-      setMessage('Word not in the allowed list.');
-      return;
-    }
+    try {
+      const response = await axios.post('http://localhost:8080/guess', {
+        gameId,
+        guess: currentGuess,
+      });
 
-    const newGuesses = [...guesses, currentGuess];
-    setGuesses(newGuesses);
+      const { guesses: serverGuesses, gameOver, message, letterStatuses: serverLetterStatuses } = response.data;
 
-    // Update letter statuses
-    const newLetterStatuses = { ...letterStatuses };
-    for (let i = 0; i < 5; i++) {
-      const letter = currentGuess[i];
-      const status = getLetterStatus(letter, i, currentGuess);
-      if (status === 'correct' || (status === 'present' && newLetterStatuses[letter] !== 'correct') || (status === 'absent' && !newLetterStatuses[letter])) {
-        newLetterStatuses[letter] = status;
+      // Update guesses with the new guess data
+      const newGuessData: GuessData = {
+        word: currentGuess,
+        letterStatuses: serverLetterStatuses as ('correct' | 'present' | 'absent')[],
+      };
+      setGuesses(prevGuesses => [...prevGuesses, newGuessData]);
+
+      setGameOver(gameOver);
+      setMessage(message);
+
+      // Update overall letter statuses for the keyboard
+      const newLetterStatuses = { ...letterStatuses };
+      for (let i = 0; i < 5; i++) {
+        const letter = currentGuess[i].toUpperCase();
+        const status = serverLetterStatuses[i] as 'correct' | 'present' | 'absent';
+        if (status === 'correct' || (status === 'present' && newLetterStatuses[letter] !== 'correct') || (status === 'absent' && !newLetterStatuses[letter])) {
+          newLetterStatuses[letter] = status;
+        }
       }
-    }
-    setLetterStatuses(newLetterStatuses);
+      setLetterStatuses(newLetterStatuses);
 
-    setCurrentGuess('');
-    setMessage('');
-
-    if (currentGuess === targetWord) {
-      setGameOver(true);
-      setMessage('Congratulations! You guessed the word!');
-    } else if (newGuesses.length >= maxAttempts) {
-      setGameOver(true);
-      setMessage(`Game over! The word was ${targetWord}.`);
+      setCurrentGuess('');
+    } catch (error) {
+      console.error('Error submitting guess:', error);
+      setMessage('Error submitting guess. Please try again.');
     }
   };
 
-  const getLetterStatus = (letter: string, index: number, guess: string) => {
-    if (letter === targetWord[index]) {
-      return 'correct';
-    } else if (targetWord.includes(letter)) {
-      return 'present';
-    } else {
-      return 'absent';
-    }
-  };
+  const handleSaveSettings = async (newMaxAttempts: number, newWordList: string[]) => {
+    try {
+      await axios.put('http://localhost:8080/settings', {
+        gameId,
+        maxAttempts: newMaxAttempts,
+        wordList: newWordList,
+      });
 
-  const handleSaveSettings = (newMaxAttempts: number, newWordList: string[]) => {
-    setMaxAttempts(newMaxAttempts);
-    setWordList(newWordList);
-    setShowSettings(false);
-    // Reset the game
-    setGuesses([]);
-    setCurrentGuess('');
-    setGameOver(false);
-    setMessage('');
-    setLetterStatuses({});
-    setTargetWord(newWordList[Math.floor(Math.random() * newWordList.length)]);
+      setMaxAttempts(newMaxAttempts);
+      setShowSettings(false);
+      resetGame();
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      setMessage('Error updating settings. Please try again.');
+    }
   };
 
   return (
     <GameContainer>
       <Header>
-        <Title>..</Title>
         <SettingsButton onClick={() => setShowSettings(true)}>Settings</SettingsButton>
       </Header>
       <Grid>
         {Array.from({ length: maxAttempts }).map((_, rowIndex) => (
           <React.Fragment key={rowIndex}>
             {Array.from({ length: 5 }).map((_, colIndex) => {
-              const letter = guesses[rowIndex]?.[colIndex] || (rowIndex === guesses.length ? currentGuess[colIndex] : '');
-              const status =
-                guesses[rowIndex]
-                  ? getLetterStatus(letter, colIndex, guesses[rowIndex])
-                  : letter
-                  ? 'filled'
-                  : 'empty';
+              const guessData = guesses[rowIndex];
+              const letter = guessData?.word[colIndex] || (rowIndex === guesses.length ? currentGuess[colIndex] : '');
+              let status: 'empty' | 'filled' | 'correct' | 'present' | 'absent' = 'empty';
+              if (guessData) {
+                status = guessData.letterStatuses[colIndex];
+              } else if (letter) {
+                status = 'filled';
+              }
               return <Cell key={colIndex} status={status}>{letter}</Cell>;
             })}
           </React.Fragment>
@@ -251,7 +287,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
           onClose={() => setShowSettings(false)}
           onSave={handleSaveSettings}
           currentMaxAttempts={maxAttempts}
-          currentWordList={wordList}
+          currentWordList={[]}
           inputRef={settingsInputRef}
         />
       )}

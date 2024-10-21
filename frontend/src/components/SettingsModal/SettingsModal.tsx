@@ -20,13 +20,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [maxAttempts, setMaxAttempts] = useState(currentMaxAttempts);
   const [wordList, setWordList] = useState(currentWordList.join('\n'));
+  const [warningMessages, setWarningMessages] = useState<string[]>([]);
 
   const handleSave = () => {
+    const warnings: string[] = [];
+
+    // Check max attempts
+    if (maxAttempts < 1) {
+      warnings.push("Max attempts must be larger than 1.");
+    }
+
+    // Check word list
     const newWordList = wordList
       .split('\n')
       .map(word => word.trim().toUpperCase())
-      .filter(word => word.length === 5);
-    onSave(maxAttempts, newWordList);
+      .filter(word => word.length > 0);
+
+    const invalidWords = newWordList.filter(word => word.length !== 5);
+
+    if (invalidWords.length > 0) {
+      warnings.push(`All words must be 5 letters long. Invalid words: ${invalidWords.join(', ')}`);
+    }
+
+    if (warnings.length > 0) {
+      setWarningMessages(warnings);
+    } else {
+      setWarningMessages([]);
+      onSave(maxAttempts, newWordList);
+    }
   };
 
   if (!show) return null;
@@ -58,6 +79,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             />
           </label>
         </div>
+        {warningMessages.length > 0 && (
+          <div className="warning-messages">
+            {warningMessages.map((message, index) => (
+              <p key={index} className="warning-message">{message}</p>
+            ))}
+          </div>
+        )}
         <button onClick={handleSave}>Save</button>
       </div>
     </div>

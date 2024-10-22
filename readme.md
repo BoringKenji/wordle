@@ -1,25 +1,35 @@
 # Multiplayer Wordle Game
 
-A real-time multiplayer version of the popular word-guessing game Wordle, built with Next.js and Go.
+A programming assignment implementation of Wordle game with various modes, built with Next.js and Go.
 
 ## 🎮 Features
 
-- **Single Player Mode**
-  - Classic Wordle gameplay
-  - Customizable word lists
-  - Adjustable number of attempts
-  - Letter status tracking
+### Task 1: Normal Wordle ✅
+- Classic Wordle gameplay based on NYTimes Wordle
+- Configurable settings:
+  - Maximum number of attempts
+  - Customizable word lists (5-letter English words only)
+- Clear win/lose conditions
+- Case-insensitive input
 
-- **Multiplayer Mode (Coming)** 
-  - Create and join game rooms
-  - Real-time player interaction
-  - Ready-up system
-  - Competitive gameplay
+### Task 2: Server/Client Wordle ✅
+- Complete separation of game logic between client and server
+- Secure answer handling (answer unknown to client until game over)
+- Server-side input validation
+- RESTful API implementation
 
-- **Game Settings**
-  - Custom word lists
-  - Adjustable maximum attempts
-  - Optional "Host Cheating" mode (Absurdle variant)
+### Task 3: Host Cheating Mode (Absurdle) ✅
+- Dynamic answer selection based on player guesses
+- Scoring system:
+  - Prioritizes fewer exact matches (Hits)
+  - Secondary priority on partial matches (Present)
+- Indistinguishable from normal mode from player perspective
+
+### Task 4: Multiplayer Mode (In Progress) 🚧 (Coming soon)
+- Room creation and joining system
+- Player ready-up mechanism
+- Real-time game state updates
+- Clear win/lose/tie conditions
 
 ## 🚀 Tech Stack
 
@@ -75,80 +85,71 @@ npm run dev
 
 ## 🎯 Game Rules
 
-1. Try to guess the 5-letter word
-2. After each guess, you'll get color-coded feedback:
-* 🟩 Green: Letter is correct and in the right position:
-* 🟨 Yellow: Letter is in the word but in the wrong position
-* ⬜ Gray: Letter is not in the word
+### Scoring Rules
+- Hit (🟩): Letter is in the correct spot
+- Present (🟨): Letter is in the word but wrong spot
+- Miss (⬜): Letter is not in the word
 
-Multiplayer Mode
-* Create or join a room
-* Wait for all players to mark themselves as ready
-* Take turns guessing the word
-* First player to guess correctly wins!
+### Host Cheating Mode (Absurdle)
+The game maintains a list of candidate words and updates it based on:
+- Lowest possible score for current guess
+- Consistency with previous round results
 
-## 🏗️ Project Structure
-```
-├── frontend/
-    ├── Dockerfile
-    ├── README.md
-    ├── next-env.d.ts
-    ├── next.config.mjs
-    ├── node_modules
-    ├── package-lock.json
-    ├── package.json
-    └── tsconfig.json
-    ├── src
-        ├── app
-        │   ├── favicon.ico
-        │   ├── fonts
-        │   │   ├── GeistMonoVF.woff
-        │   │   └── GeistVF.woff
-        │   ├── globals.css
-        │   ├── layout.tsx
-        │   ├── page.module.css
-        │   └── page.tsx
-        └── components
-            ├── SettingsModal
-            │   ├── SettingsModal.css
-            │   └── SettingsModal.tsx
-            ├── VirtualKeyboard
-            │   ├── VirtualKeyboard.css
-            │   └── VirtualKeyboard.tsx
-            └── WordleGame
-                ├── WordleGame.css
-                └── WordleGame.tsx
-└── backend/
-    ├── Dockerfile
-    ├── cmd
-    │   └── server
-    │       └── main.go
-    ├── config
-    │   └── config.go
-    ├── go.mod
-    ├── go.sum
-    └── internal
-        ├── api
-        │   ├── handlers
-        │   │   ├── game.go
-        │   │   └── settings.go
-        │   └── routes.go
-        ├── game
-        │   ├── game.go
-        │   └── state.go
-        ├── utils
-        │   └── helpers.go
-        └── wordlist
-            └── wordlist.go
-```
 
-## 📝 TODO
-- [ ] Add user authentication
-- [ ] Implement chat system
-- [ ] Add game statistics
-- [ ] Create leaderboard
-- [ ] Add sound effects
-- [ ] Implement game history
+## 📝 High Priority TODOs
 
-## Acknowledgments
-This is a programming test from Sandbox VR
+Security and Configuration:
+- [ ] Add CORS restrictions to backend API
+- [ ] Move frontend configuration to separate files
+- [ ] Implement proper error handling and logging
+- [ ] Implement request validation middleware
+
+Features and Improvements:
+- [ ] Complete multiplayer mode implementation
+- [ ] Add game statistics tracking
+- [ ] Implement proper game state management
+- [ ] Add unit tests for both frontend and backend
+- [ ] Add integration tests for API endpoints
+
+User Experience:
+- [ ] Add loading states and error messages
+- [ ] Implement responsive design for mobile devices
+- [ ] Add keyboard shortcuts
+- [ ] Improve accessibility
+
+Documentation:
+- [ ] Add API documentation
+- [ ] Document game logic and scoring system
+- [ ] Add development setup guide
+- [ ] Document testing procedures
+
+## Trade-offs and Decisions
+
+1. Technology Choices:
+   - Next.js: Provides good developer experience and built-in optimizations
+   - Go: Excellent performance for backend services and good standard library
+   - REST over WebSocket: Simpler implementation for current requirements
+
+2. Architecture Decisions:
+   - Separate frontend/backend: Allows independent scaling and maintenance
+   - Docker deployment: Ensures consistent environment across development and production
+
+3. Future Considerations:
+   - WebSocket implementation for real-time features
+   - Database integration for persistent storage
+   - Authentication system for user management
+
+## 🙏 Acknowledgments
+
+This project is a programming assignment from Sandbox VR. Special thanks for providing this detailed and interesting challenge that covers various aspects of software development including:
+- Understanding of abstract problems
+- Decision making based on requirements
+- Code quality and organization
+- Documentation
+- Source code repository practices
+
+Special appreciation for the opportunity to demonstrate skills in both frontend and backend development, as well as system design considerations.
+
+---
+
+Made with ❤️ by Kenji

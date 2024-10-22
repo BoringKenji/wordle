@@ -61,7 +61,7 @@ cd wordle-multiplayer
 
 2. Start the application:
 ```
-docker-compose up --build
+docker compose up --build
 ```
 
 The application will be available at:

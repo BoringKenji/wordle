@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styled from '@emotion/styled';
-import WordleGame from '../components/WordleGame';
+import WordleGame from '../components/WordleGame/WordleGame';
 
 const Container = styled.div`
   display: flex;

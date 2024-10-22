@@ -7,6 +7,7 @@ import './WordleGame.css';
 interface WordleGameProps {
   initialMaxAttempts?: number;
   initialHostCheating?: boolean;
+  isMultiplayer?: boolean;
 }
 
 interface GuessData {
@@ -17,6 +18,7 @@ interface GuessData {
 const WordleGame: React.FC<WordleGameProps> = ({
   initialMaxAttempts = 6,
   initialHostCheating = true,
+  isMultiplayer = false,
 }) => {
   const [gameId, setGameId] = useState('');
   const [guesses, setGuesses] = useState<GuessData[]>([]);
@@ -28,6 +30,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
   const [maxAttempts, setMaxAttempts] = useState(initialMaxAttempts);
   const [currentWordList, setCurrentWordList] = useState<string[]>([]);
   const [hostCheating, setHostCheating] = useState(initialHostCheating);
+  const [waitingForOthers, setWaitingForOthers] = useState(false);
 
   const settingsInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -120,6 +123,15 @@ const WordleGame: React.FC<WordleGameProps> = ({
       }
       setLetterStatuses(newLetterStatuses);
   
+      if (isMultiplayer) {
+        setWaitingForOthers(true);
+        // TODO: Implement backend logic to wait for other players' guesses
+        // For now, we'll use a setTimeout to simulate waiting
+        setTimeout(() => {
+          setWaitingForOthers(false);
+        }, 3000);
+      }
+
       setCurrentGuess('');
     } catch (error) {
       console.error('Error submitting guess:', error);
@@ -180,6 +192,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
         ))}
       </div>
       {message && <p className="message">{message}</p>}
+      {waitingForOthers && <p className="message">Waiting for other players...</p>}
       <VirtualKeyboard onKeyPress={handleKeyPress} letterStatuses={letterStatuses} />
       {showSettings && (
         <SettingsModal

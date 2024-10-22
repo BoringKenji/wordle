@@ -9,6 +9,7 @@ interface SettingsModalProps {
   currentWordList: string[];
   currentHostCheating: boolean;
   inputRef: React.RefObject<HTMLTextAreaElement>;
+  isMultiplayer?: boolean;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -19,11 +20,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   currentWordList,
   currentHostCheating,
   inputRef,
+  isMultiplayer = false,
 }) => {
   const [maxAttempts, setMaxAttempts] = useState(currentMaxAttempts);
   const [wordList, setWordList] = useState(currentWordList.join('\n'));
   const [hostCheating, setHostCheating] = useState(currentHostCheating);
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
+  const [playerName, setPlayerName] = useState('');
 
   useEffect(() => {
     setWordList(currentWordList.join('\n'));
@@ -49,6 +52,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       warnings.push(`All words must be 5 letters long. Invalid words: ${invalidWords.join(', ')}`);
     }
 
+    if (isMultiplayer && playerName.trim() === '') {
+      warnings.push("Player name is required for multiplayer games.");
+    }
+
     if (warnings.length > 0) {
       setWarningMessages(warnings);
     } else {
@@ -64,6 +71,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       <div className="modal-content">
         <span className="close-button" onClick={onClose}>&times;</span>
         <h2>Settings</h2>
+        {isMultiplayer && (
+          <div>
+            <label>
+              Player Name:
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                required
+              />
+            </label>
+          </div>
+        )}
         <div>
           <label>
             Max Attempts:

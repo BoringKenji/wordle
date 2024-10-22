@@ -55,7 +55,7 @@ A programming assignment implementation of Wordle game with various modes, built
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/wordle-multiplayer.git
+git clone https://github.com/BoringKenji/wordle-multiplayer.git
 cd wordle-multiplayer
 ```
 

@@ -4,9 +4,10 @@ import './SettingsModal.css';
 interface SettingsModalProps {
   show: boolean;
   onClose: () => void;
-  onSave: (maxAttempts: number, wordList: string[]) => void;
+  onSave: (maxAttempts: number, wordList: string[], hostCheating: boolean) => void;
   currentMaxAttempts: number;
   currentWordList: string[];
+  currentHostCheating: boolean;
   inputRef: React.RefObject<HTMLTextAreaElement>;
 }
 
@@ -16,10 +17,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onSave,
   currentMaxAttempts,
   currentWordList,
+  currentHostCheating,
   inputRef,
 }) => {
   const [maxAttempts, setMaxAttempts] = useState(currentMaxAttempts);
   const [wordList, setWordList] = useState(currentWordList.join('\n'));
+  const [hostCheating, setHostCheating] = useState(currentHostCheating);
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
 
   useEffect(() => {
@@ -50,7 +53,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       setWarningMessages(warnings);
     } else {
       setWarningMessages([]);
-      onSave(maxAttempts, newWordList);
+      onSave(maxAttempts, newWordList, hostCheating);
     }
   };
 
@@ -81,6 +84,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) => setWordList(e.target.value)}
               rows={10}
             />
+          </label>
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={hostCheating}
+              onChange={(e) => setHostCheating(e.target.checked)}
+            />
+            Enable Host Cheating (Absurdle mode)
           </label>
         </div>
         {warningMessages.length > 0 && (

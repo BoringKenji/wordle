@@ -6,6 +6,7 @@ import './WordleGame.css';
 
 interface WordleGameProps {
   initialMaxAttempts?: number;
+  initialHostCheating?: boolean;
 }
 
 interface GuessData {
@@ -15,6 +16,7 @@ interface GuessData {
 
 const WordleGame: React.FC<WordleGameProps> = ({
   initialMaxAttempts = 6,
+  initialHostCheating = true,
 }) => {
   const [gameId, setGameId] = useState('');
   const [guesses, setGuesses] = useState<GuessData[]>([]);
@@ -25,6 +27,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [maxAttempts, setMaxAttempts] = useState(initialMaxAttempts);
   const [currentWordList, setCurrentWordList] = useState<string[]>([]);
+  const [hostCheating, setHostCheating] = useState(initialHostCheating);
 
   const settingsInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -124,15 +127,17 @@ const WordleGame: React.FC<WordleGameProps> = ({
     }
   };
 
-  const handleSaveSettings = async (newMaxAttempts: number, newWordList: string[]) => {
+  const handleSaveSettings = async (newMaxAttempts: number, newWordList: string[], newHostCheating: boolean) => {
     try {
       await axios.put('http://localhost:8080/settings', {
         gameId,
         maxAttempts: newMaxAttempts,
         wordList: newWordList,
+        hostCheating: newHostCheating,
       });
 
       setMaxAttempts(newMaxAttempts);
+      setHostCheating(newHostCheating);
       setShowSettings(false);
       resetGame();
     } catch (error) {
@@ -183,6 +188,7 @@ const WordleGame: React.FC<WordleGameProps> = ({
           onSave={handleSaveSettings}
           currentMaxAttempts={maxAttempts}
           currentWordList={currentWordList}
+          currentHostCheating={hostCheating}
           inputRef={settingsInputRef}
         />
       )}

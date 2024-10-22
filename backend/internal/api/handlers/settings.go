@@ -17,9 +17,10 @@ func NewSettingsHandler(gm *game.Manager) *SettingsHandler {
 
 func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 	var request struct {
-		GameID      string   `json:"gameId"`
-		MaxAttempts int      `json:"maxAttempts"`
-		WordList    []string `json:"wordList"`
+		GameID       string   `json:"gameId"`
+		MaxAttempts  int      `json:"maxAttempts"`
+		WordList     []string `json:"wordList"`
+		HostCheating bool     `json:"hostCheating"`
 	}
 
 	if err := c.BindJSON(&request); err != nil {
@@ -27,7 +28,7 @@ func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 		return
 	}
 
-	err := h.gameManager.UpdateSettings(request.GameID, request.MaxAttempts, request.WordList)
+	err := h.gameManager.UpdateSettings(request.GameID, request.MaxAttempts, request.WordList, request.HostCheating)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
 		return

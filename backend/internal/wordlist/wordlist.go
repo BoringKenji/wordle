@@ -1,34 +1,34 @@
 package wordlist
 
-import (
-	"math/rand"
-)
-
 type WordList struct {
-	words []string
+    words map[string]bool
 }
 
 func New(initialWords []string) *WordList {
-	return &WordList{words: initialWords}
+    wl := &WordList{
+        words: make(map[string]bool),
+    }
+    for _, word := range initialWords {
+        wl.words[word] = true
+    }
+    return wl
 }
 
 func (wl *WordList) GetWords() []string {
-    return wl.words
-}
-
-func (wl *WordList) GetRandomWord() string {
-	return wl.words[rand.Intn(len(wl.words))]
+    words := make([]string, 0, len(wl.words))
+    for word := range wl.words {
+        words = append(words, word)
+    }
+    return words
 }
 
 func (wl *WordList) Contains(word string) bool {
-	for _, w := range wl.words {
-		if w == word {
-			return true
-		}
-	}
-	return false
+    return wl.words[word]
 }
 
 func (wl *WordList) UpdateWordList(newWords []string) {
-	wl.words = newWords
+    wl.words = make(map[string]bool)
+    for _, word := range newWords {
+        wl.words[word] = true
+    }
 }
